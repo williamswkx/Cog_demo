@@ -1,0 +1,31 @@
+// This funtion goes in the Controllers/HomeController.cs file under the "helper functions" comment
+
+async Task<String> MakeRequest(string submittedPhoto)
+{
+    var client = new HttpClient();
+
+    // Add request headers
+    client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", {Your subscription key here}); // TODO: Fix key
+    var uri = "https://api.projectoxford.ai/emotion/v1.0/recognize";
+            
+    // Format request body
+    String picURL= "\"" + submittedPhoto + "\"";
+    String format = "\"url\":";
+    String requestBody= String.Format("{0} {1}", format, picURL);
+    requestBody = "{" + requestBody + "}";
+    byte[] byteData = Encoding.UTF8.GetBytes(requestBody);
+
+    // Send request
+    HttpResponseMessage response;
+    using (var content = new ByteArrayContent(byteData))
+    {
+        content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+        response = await client.PostAsync(uri, content).ConfigureAwait(false);
+    }
+    
+    // Convert JSON to a string for parsing later            
+    HttpContent httpResults = response.Content;
+    var results = await httpResults.ReadAsStringAsync();
+    
+    return results;
+}
